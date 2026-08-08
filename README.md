@@ -16,7 +16,3 @@ Le navigateur peut bloquer le fichier `SecretDownloader-setup.exe` pendant son t
 Ouvrez ensuite `SecretDownloader-setup.exe`.
 
 Si Windows affiche **Windows a protégé votre PC**, cliquez sur **Informations complémentaires**, puis sur **Exécuter quand même**. Vous pouvez alors terminer l'installation.
-
-## 3. Confirmer le premier lancement
-
-Après l'installation, ouvrez l'application. Copiez le `server_id` affiché en pied de page et envoyez-le à la personne qui vous a communiqué ce lien. Cette confirmation permet de vérifier que le premier lancement a bien abouti.
