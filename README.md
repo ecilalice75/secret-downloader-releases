@@ -10,6 +10,7 @@ Le navigateur peut bloquer le fichier `SecretDownloader-setup.exe` pendant son t
 
 - **Dans Microsoft Edge :** ouvrez le menu `⋯` du téléchargement, puis cliquez sur **Conserver**. Si une confirmation supplémentaire apparaît, choisissez **Afficher plus**, puis **Conserver quand même**.
 - **Dans Google Chrome :** ouvrez les téléchargements avec la flèche, puis cliquez sur **Conserver**.
+- **Dans Mozilla Firefox :** ouvrez le panneau des téléchargements, cliquez sur la flèche vers la droite à côté du fichier, puis sur **Autoriser le téléchargement**.
 
 ## 2. Autoriser le lancement
 
