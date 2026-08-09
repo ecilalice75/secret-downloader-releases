@@ -1,0 +1,79 @@
+name: Re-sign TUF metadata
+
+# Re-signature mensuelle des métadonnées TUF du canal de mise à jour (issue
+# #114, ADR-0010). Ce dépôt (`secret-downloader-releases`) est PUBLIC et vide de code :
+# le workflow est lisible et attaquable — il ne tourne JAMAIS sur un
+# déclencheur de PR (`pull_request` / `pull_request_target`), seulement sur
+# `schedule` et `workflow_dispatch`.
+#
+# Sans cette re-signature, le rôle `timestamp` (90 j) expire et le canal
+# meurt ; `-e` est OBLIGATOIRE — sans lui, `_cmd_sign()` ajoute une signature
+# sans toucher `expires`, donc ne proroge rien.
+
+on:
+  schedule:
+    # 1er du mois, 03:00 UTC — mensuel (ADR-0010 : le cron peut échouer deux
+    # fois de suite sans conséquence).
+    - cron: '0 3 1 * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  re-sign:
+    name: Re-signer snapshot + timestamp
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          # Même ligne Python figée que le build (bsdiff4 installable).
+          python-version: '3.12'
+
+      - name: Installer tufup
+        run: pip install tufup==0.10.0
+
+      - name: Materialiser le keystore (snapshot + timestamp)
+        env:
+          TUF_KEY_SNAPSHOT: ${{ secrets.TUF_KEY_SNAPSHOT }}
+          TUF_KEY_TIMESTAMP: ${{ secrets.TUF_KEY_TIMESTAMP }}
+        run: |
+          for name in TUF_KEY_SNAPSHOT TUF_KEY_TIMESTAMP; do
+            if [ -z "${!name}" ]; then
+              echo "::error::$name est vide : la re-signature est impossible."
+              exit 1
+            fi
+          done
+          mkdir -p work/repository/metadata work/keystore
+          cp .tufup-repo-config work/
+          # Deux clés seulement : threshold_sign ne cherche que les clés du
+          # rôle modifié ; root/targets ne sont pas nécessaires ici.
+          printf '%s' "$TUF_KEY_SNAPSHOT"  | base64 -d > work/keystore/snapshot
+          printf '%s' "$TUF_KEY_TIMESTAMP" | base64 -d > work/keystore/timestamp
+          chmod 600 work/keystore/*
+
+      - name: Reconstruire metadata/
+        run: gh release download tuf-metadata --pattern '*.json' --dir work/repository/metadata
+
+      - name: Re-signer snapshot et timestamp (-e obligatoire)
+        working-directory: work
+        run: tufup sign snapshot keystore -e
+        # `tufup sign snapshot keystore -e` : -e sans valeur → jours de la
+        # config (snapshot 365, timestamp 90) ; refresh_expiration_date rend
+        # snapshot modifié et publish_changes cascade sur timestamp — les deux
+        # rôles sont re-signés en une passe. La forme « sign snapshot -e
+        # <keystore> » de l'issue serait inexécutable (argparse avale le
+        # chemin) — ici l'ordre est role → key_dirs → -e.
+
+      - name: Publier les metadonnees
+        run: gh release upload tuf-metadata work/repository/metadata/*.json --clobber
+        # --clobber remplace root/targets/snapshot/timestamp ; fenêtre de 404
+        # sur timestamp.json à chaque remplacement — actée (~12/an). Échec =
+        # run en erreur, visible ; le client remonte ExpiredMetadataError en
+        # POST /log/error si ce cron meurt.

@@ -1,0 +1,7 @@
+# Le keystore ne se commite JAMAIS (ADR-0011) : les clés privées de
+# re-signature vivent dans les secrets GitHub de ce dépôt.
+keystore/
+
+# État reconstruit du dépôt TUF par le workflow (metadata/ et targets/ sont
+# régénérés depuis les releases à chaque run).
+work/

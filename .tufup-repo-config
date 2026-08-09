@@ -1,0 +1,36 @@
+{
+    "app_name": "SecretDownloader",
+    "app_version_attr": null,
+    "binary_diff": null,
+    "encrypted_keys": [
+        "root"
+    ],
+    "expiration_days": {
+        "root": 3650,
+        "snapshot": 365,
+        "targets": 365,
+        "timestamp": 90
+    },
+    "key_map": {
+        "root": [
+            "root"
+        ],
+        "snapshot": [
+            "snapshot"
+        ],
+        "targets": [
+            "targets"
+        ],
+        "timestamp": [
+            "timestamp"
+        ]
+    },
+    "keys_dir": "keystore",
+    "repo_dir": "repository",
+    "thresholds": {
+        "root": 1,
+        "snapshot": 1,
+        "targets": 1,
+        "timestamp": 1
+    }
+}
